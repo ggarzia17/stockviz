@@ -1,6 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+import time
+
+import yfinance.ticker
+
+import yfinance as yf
+from pandas_datareader import data
+import pandas as pd
 
 
 WIKI = 'https://en.wikipedia.org/wiki/List_of_S&P_500_companies'
@@ -80,11 +87,23 @@ def get_spy_tickers() -> StockInfo:
 if __name__ == '__main__':
     l = {"stocks": []}
     for s in get_spy_tickers():
+        data = yf.ticker.Ticker(s.ticker)
+        print(data)
+        exit(0)
+        marketCap="ERROR"
+        try:
+            marketCap = data.info['marketCap']
+        except:
+            print(s.ticker)
+
+
         l["stocks"] += [{
             "ticker": s.ticker,
             "name": s.name,
             "sector": s.sector,
-            "industry": s.industry
+            "industry": s.industry,
+            "marketCap": marketCap
         }]
+        time.sleep(0.1)
     with open("../spy.json", "w") as f:
         json.dump(l, f)
