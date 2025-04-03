@@ -87,12 +87,13 @@ def get_spy_tickers() -> StockInfo:
 if __name__ == '__main__':
     l = {"stocks": []}
     for s in get_spy_tickers():
-        data = yf.ticker.Ticker(s.ticker)
-        print(data)
-        exit(0)
+        data = yf.Ticker(s.ticker)
+
         marketCap="ERROR"
         try:
             marketCap = data.info['marketCap']
+            price = yf.download(s.ticker).iat[-1, 0]
+            openPrice = data.info["regularMarketOpen"]
         except:
             print(s.ticker)
 
@@ -102,8 +103,10 @@ if __name__ == '__main__':
             "name": s.name,
             "sector": s.sector,
             "industry": s.industry,
-            "marketCap": marketCap
+            "marketCap": marketCap,
+            "open": openPrice,
+            "price": price
         }]
-        time.sleep(0.1)
+        time.sleep(0.01)
     with open("../spy.json", "w") as f:
         json.dump(l, f)

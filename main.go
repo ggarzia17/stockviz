@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"github.com/joho/godotenv"
-	"net/http"
-	// tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/bubbletea"
 )
 
 type Stocks struct {
@@ -19,7 +17,9 @@ type StockInfo struct {
 	Name string `json:"name"`
 	Sector string `json:"sector"`
 	Industry string `json:"industry"`
-	Weight float64
+	MarketCap float64 `json:"marketCap"`
+	OpenPrice float64 `json:"open"`
+	CurrentPrice float64 `json:"price"`
 }
 
 func main(){
@@ -43,17 +43,5 @@ func main(){
 	// 	fmt.Println("Industry = " + stocks.Stocks[i].Industry)
 		
 	// }
-
-	envFile, _ := godotenv.Read(".env")
-
-	API_KEY := envFile["API_KEY"]
-
-
-	stock, err := http.Get("https://www.alphavantage.co/query?function=ETF_PROFILE&symbol=SPDR&apikey="+API_KEY)
-
-	if err != nil{
-		panic(err)
-	}
-
-	fmt.Println(stock.)
+	
 }
