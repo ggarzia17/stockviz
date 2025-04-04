@@ -158,7 +158,8 @@ func (m model) View() string {
 			c = cGreen + bold
 		} else if s.performance > -0.0075 {
 			c = cWhite
-		} else if s.per + bold
+		} else if s.performance > -0.02 {
+			c = cRed + bold
 		}
 		str += reset + s.ticker + "\n" + c + strconv.FormatFloat(s.performance, 'f', -1, 64) + "\n" + "████████\n" + strconv.FormatFloat(s.weight, 'f', -1, 64) + "\n\n"
 	}
