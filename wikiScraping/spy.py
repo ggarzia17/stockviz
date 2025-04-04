@@ -28,7 +28,6 @@ class StockInfo():
 def get_spy_tickers() -> StockInfo:
     soup = BeautifulSoup(requests.get(WIKI).text, 'html.parser')
 
-    # print(soup.findAll("table", {'class': 'wikitable sortable sticky-header'}))
     symbols: list[StockInfo] = []
     iTicker = -1
     iName = -1
@@ -39,7 +38,6 @@ def get_spy_tickers() -> StockInfo:
         header = table.findAll('th')
         for i in range(len(header)):
             s = header[i].text.lower()
-            print(s)
             if 'symbol' in s:
                 iTicker = i
             if 'security' in s:
@@ -92,21 +90,21 @@ if __name__ == '__main__':
         marketCap="ERROR"
         try:
             marketCap = data.info['marketCap']
-            price = yf.download(s.ticker).iat[-1, 0]
-            openPrice = data.info["regularMarketOpen"]
-        except:
-            print(s.ticker)
+            price = data.info["currentPrice"]
+            openPrice = data.info["previousClose"]
+            l["stocks"] += [{
+                "ticker": s.ticker,
+                "name": s.name,
+                "sector": s.sector,
+                "industry": s.industry,
+                "marketCap": marketCap,
+                "open": openPrice,
+                "price": price
+            }]
+            time.sleep(0.01)
+        except Exception as e:
+            print(s.ticker, e)
 
-
-        l["stocks"] += [{
-            "ticker": s.ticker,
-            "name": s.name,
-            "sector": s.sector,
-            "industry": s.industry,
-            "marketCap": marketCap,
-            "open": openPrice,
-            "price": price
-        }]
-        time.sleep(0.01)
+        
     with open("../spy.json", "w") as f:
         json.dump(l, f)
