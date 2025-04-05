@@ -198,12 +198,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	str := ""
 	
-	s := m.sectors[2].industries[1].stocks
+	s := m.sectors[9].industries[6].stocks
 	slices.SortFunc(s, func(i,j stockmodel) int{
 		return -cmp.Compare(i.weight, j.weight)
 	})
 
-	stocks := buildStocks(15, 10, s, m.sectors[2].industries[1].marketCap)
+	stocks := buildStocks(50, 30, s, m.sectors[9].industries[6].marketCap)
+
+	for _, l := range stocks.lines{
+		str += l + "\n"
+	}
+	str += m.sectors[9].industries[6].name
+
 	// // slices.Reverse(stocks)
 	// box := fillStocks(15,10,stocks)
 	// for _, l := range box.lines {
@@ -211,9 +217,9 @@ func (m model) View() string {
 	// }
 	// str +=fmt.Sprint(box.x,box.y) + "\n"
 
-	for _, s := range stocks{
-		str += fmt.Sprint(s.x) + " " + fmt.Sprint(s.y) + "\n"
-	}
+	// for _, s := range stocks{
+	// 	str += fmt.Sprint(s.x) + " " + fmt.Sprint(s.y) + "\n"
+	// }
 	// str = ""
 	// for _, sh := range buildStocks(15, 10, s, m.sectors[2].industries[1].marketCap){
 	// 	for _, l := range sh.lines {
@@ -225,8 +231,12 @@ func (m model) View() string {
 	// for _, s := range m.sectors{
 	// 	str += s.name + "\n"
 	// 	for _, i := range s.industries{
-	// 		str += i.name + " | "
+	// 		str += i.name + "\n"
+	// 		for _, st := range i.stocks{
+	// 			str += st.color + "1"
+	// 		}
 	// 	}
+	// 	str += "\n"
 	// }
 	return str
 }
@@ -245,7 +255,9 @@ func rect(x, y int, cbg, t string) shape{
 	lines := make([]string, y-1)
 	for i := range lines {
 		lines[i] += hdr
-		if x > len(t) && i == y/2-1{
+		if x == 4 && len(t) == 3 && i == y/2-1{
+			lines[i] += cWhite + t + hdr
+		}else if x > len(t) && i == y/2-1{
 			for range x/2-len(t)/2{
 				lines[i] += " "
 			}
@@ -317,41 +329,74 @@ func appendShapesHorizontally(r1, r2 shape) shape{
 	}
 	return r
 }
-func appendShapes(r1, r2 shape) shape{
-	fmt.Print("{", r1.x, r1.y, r2.x, r2.y, "}")
-	if r1.x == r2.x{
-		fmt.Println("vert")
-		return appendShapesVertically(r1, r2)
-	}else if r1.y == r2.y {
-		fmt.Println("hor")
-		return appendShapesHorizontally(r1, r2)
-	}
-	return r2
-}
-func fillStocks(x, y int, shapes []shape) shape{
-	tot := shapes[0]
-	for i,s := range shapes[1:]{
-		fmt.Print(i, tot.x, tot.y, s.x, s.y)
-		tot = appendShapes(tot, s)
-	}
-	fmt.Println()
-	return tot
-}
+// func appendShapes(r1, r2 shape) shape{
+// 	fmt.Print("{", r1.x, r1.y, r2.x, r2.y, "}")
+// 	if r1.x == r2.x{
+// 		fmt.Println("vert")
+// 		return appendShapesVertically(r1, r2)
+// 	}else if r1.y == r2.y {
+// 		fmt.Println("hor")
+// 		return appendShapesHorizontally(r1, r2)
+// 	}
+// 	return r2
+// }
+// func fillStocks(x, y int, shapes []shape) shape{
+// 	tot := shapes[0]
+// 	for i,s := range shapes[1:]{
+// 		fmt.Print(i, tot.x, tot.y, s.x, s.y)
+// 		tot = appendShapes(tot, s)
+// 	}
+// 	fmt.Println()
+// 	return tot
+// }
 
-func buildStocks(x, y int, s []stockmodel, totalMarketCap float64) []shape{
+func buildStocks(x, y int, s []stockmodel, totalMarketCap float64) shape{
 	if len(s) == 0 {
-		return []shape{}
+		return shape{}
 	}
 	a := x*y
 	w := s[0].marketCap/totalMarketCap
 	size := w*float64(a)
 
-	if x >= y {
-		rx := int(math.Ceil(size/float64(y)))
-		return append(buildStocks(x-rx, y, s[1:], totalMarketCap-s[0].marketCap), rect(rx, y, s[0].color, s[0].ticker))
+	if w > 0.33 {
+		if x >= y {
+			rx := int(math.Ceil(size/float64(y)))
+			return appendShapesHorizontally(
+				buildStocks(x-rx, y, s[1:], totalMarketCap-s[0].marketCap),
+				rect(rx, y, s[0].color, s[0].ticker),
+			)
+		}
+		ry := int(math.Ceil(size/float64(x)))
+		return appendShapesVertically(
+			buildStocks(x, y-ry, s[1:], totalMarketCap-s[0].marketCap),
+			rect(x, ry, s[0].color, s[0].ticker),
+		)
+	}else{
+		w = (s[1].marketCap + s[0].marketCap)/totalMarketCap
+		w1 := s[0].marketCap / (s[0].marketCap + s[1].marketCap)
+		size = w * float64(a)
+		if x >= y {
+			rx := int(math.Ceil(size/float64(y)))
+			y1 := int(math.Ceil(float64(y)*w1))
+			return appendShapesHorizontally(
+				buildStocks(x-rx, y, s[2:], totalMarketCap-s[0].marketCap-s[1].marketCap),
+				appendShapesVertically(
+					rect(rx, y-y1, s[1].color, s[1].ticker),
+					rect(rx, y1, s[0].color, s[0].ticker),
+				),
+			)
+		}else {
+			ry := int(math.Ceil(size/float64(x)))
+			x1 := int(math.Ceil(float64(x)*w1))
+			return appendShapesVertically(
+				buildStocks(x, y-ry, s[2:], totalMarketCap-s[0].marketCap-s[1].marketCap),
+				appendShapesHorizontally(
+					rect(x-x1, ry, s[1].color, s[1].ticker),
+					rect(x1, ry, s[0].color, s[0].ticker),
+				),
+			)
+		}
 	}
-	ry := int(math.Ceil(size/float64(x)))
-	return append(buildStocks(x, y-ry, s[1:], totalMarketCap-s[0].marketCap), rect(x, ry, s[0].color, s[0].ticker))
 }
 
 func main() {
