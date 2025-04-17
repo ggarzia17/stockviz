@@ -83,6 +83,9 @@ def get_spy_tickers() -> StockInfo:
 
 
 if __name__ == '__main__':
+
+    data = yf.Ticker("SE=F")
+    data.history
     l = {"stocks": []}
     for s in get_spy_tickers():
         data = yf.Ticker(s.ticker)
